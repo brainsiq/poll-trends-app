@@ -4,23 +4,38 @@ const { expect } = require('chai');
 const app = require('./testableApp');
 
 describe('GET /companies', () => {
-  const stubbedCompanies = [{ id: 1 }, { id: 2 }];
+  const fixtures = {
+    stubbedCompanies: []
+  };
   let companiesApiStub = null;
 
   beforeEach(() => {
-    companiesApiStub = sinon.stub(OpinionBeeApiClient.prototype, 'companies').resolves(stubbedCompanies);
+    fixtures.stubbedCompanies = [{ code: 1, name: 'foo', canonical: 'foo' }, { code: 2, name: 'bar', canonical: 'bar' }];
+
+    companiesApiStub = sinon.stub(OpinionBeeApiClient.prototype, 'companies').resolves(fixtures.stubbedCompanies);
   });
 
   afterEach(() => {
     companiesApiStub.restore();
   });
 
-  it('returns companies from Opinionbee', done => {
+  it('calls Opinionbee', done => {
+    app.get('/companies')
+      .expect(200)
+      .expect(() => {
+        expect(companiesApiStub.called).to.equal(true);
+      })
+      .end(done);
+  });
+
+  it('returns only company id and name', done => {
     app.get('/companies')
       .expect(200)
       .expect(res => {
-        expect(companiesApiStub.called).to.equal(true);
-        expect(res.body).to.deep.equal(stubbedCompanies);
+        expect(res.body).to.deep.equal([
+          { id: 1, name: 'foo' },
+          { id: 2, name: 'bar' }
+        ]);
       })
       .end(done);
   });
