@@ -4,14 +4,17 @@ const { expect } = require('chai');
 const app = require('./testableApp');
 
 describe('GET /polls', () => {
-  const stubbedPolls = [{ id: 1 }, { id: 2 }];
   const company = 'yg';
   const limit = 50;
   const until = '2018-01-01';
+  let stubbedPolls = [];
   let pollsApiStub = null;
 
   beforeEach(() => {
-    pollsApiStub = sinon.stub(OpinionBeeApiClient.prototype, 'polls').resolves(stubbedPolls);
+    stubbedPolls = [{ id: 1, date: '2017-12-01' }, { id: 2, date: '2018-01-01' }];
+    pollsApiStub = sinon.stub(OpinionBeeApiClient.prototype, 'polls').callsFake(() => {
+      return Promise.resolve(stubbedPolls.slice());
+    });
   });
 
   afterEach(() => {
@@ -25,6 +28,20 @@ describe('GET /polls', () => {
       .expect(res => {
         sinon.assert.calledWith(pollsApiStub, { company, limit, endDate: until });
         expect(res.body).to.deep.equal(stubbedPolls);
+      })
+      .end(done);
+  });
+
+  it('sorts polls by date (oldest first)', done => {
+    const oldPoll = { id: 3, date: '2017-01-01' };
+
+    stubbedPolls.push(oldPoll);
+
+    app.get('/polls')
+      .query({ company, limit, until })
+      .expect(200)
+      .expect(res => {
+        expect(res.body).to.deep.equal([oldPoll, stubbedPolls[0], stubbedPolls[1]]);
       })
       .end(done);
   });
