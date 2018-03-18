@@ -11,7 +11,78 @@ describe('GET /polls', () => {
   let pollsApiStub = null;
 
   beforeEach(() => {
-    stubbedPolls = [{ id: 1, date: '2017-12-01' }, { id: 2, date: '2018-01-01' }];
+    stubbedPolls = [{
+      id: 1,
+      date: '2017-12-01',
+      headline: {
+        CON: {
+          pct: 40,
+          party: {
+            code: 'CON'
+          }
+        },
+        LAB: {
+          pct: 39,
+          party: {
+            code: 'LAB'
+          }
+        },
+        LD: {
+          pct: 15,
+          party: {
+            code: 'LD'
+          }
+        },
+        UKIP: {
+          pct: 8,
+          party: {
+            code: 'UKIP'
+          }
+        },
+        GRN: {
+          pct: 4,
+          party: {
+            code: 'GRN'
+          }
+        }
+      }
+    }, {
+      id: 2,
+      date: '2018-01-01',
+      headline: {
+        CON: {
+          pct: 40,
+          party: {
+            code: 'CON'
+          }
+        },
+        LAB: {
+          pct: 39,
+          party: {
+            code: 'LAB'
+          }
+        },
+        LD: {
+          pct: 15,
+          party: {
+            code: 'LD'
+          }
+        },
+        UKIP: {
+          pct: 8,
+          party: {
+            code: 'UKIP'
+          }
+        },
+        GRN: {
+          pct: 4,
+          party: {
+            code: 'GRN'
+          }
+        }
+      }
+    }];
+
     pollsApiStub = sinon.stub(OpinionBeeApiClient.prototype, 'polls').callsFake(() => {
       return Promise.resolve(stubbedPolls.slice());
     });
@@ -27,13 +98,51 @@ describe('GET /polls', () => {
       .expect(200)
       .expect(res => {
         sinon.assert.calledWith(pollsApiStub, { company, limit, endDate: until });
-        expect(res.body).to.deep.equal(stubbedPolls);
+        expect(res.body).to.deep.equal([{
+          id: 1,
+          date: '2017-12-01',
+          results: [{
+            party: 'CON',
+            pct: 40
+          }, {
+            party: 'LAB',
+            pct: 39
+          }, {
+            party: 'LD',
+            pct: 15
+          }, {
+            party: 'UKIP',
+            pct: 8
+          }, {
+            party: 'GRN',
+            pct: 4
+          }]
+        }, {
+          id: 2,
+          date: '2018-01-01',
+          results: [{
+            party: 'CON',
+            pct: 40
+          }, {
+            party: 'LAB',
+            pct: 39
+          }, {
+            party: 'LD',
+            pct: 15
+          }, {
+            party: 'UKIP',
+            pct: 8
+          }, {
+            party: 'GRN',
+            pct: 4
+          }]
+        }]);
       })
       .end(done);
   });
 
   it('sorts polls by date (oldest first)', done => {
-    const oldPoll = { id: 3, date: '2017-01-01' };
+    const oldPoll = { id: 3, date: '2017-01-01', headline: {} };
 
     stubbedPolls.push(oldPoll);
 
@@ -41,7 +150,8 @@ describe('GET /polls', () => {
       .query({ company, limit, until })
       .expect(200)
       .expect(res => {
-        expect(res.body).to.deep.equal([oldPoll, stubbedPolls[0], stubbedPolls[1]]);
+        expect(res.body.map(({ id }) => id))
+          .to.deep.equal([3, 1, 2]);
       })
       .end(done);
   });
