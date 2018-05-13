@@ -20,21 +20,32 @@ describe('GET /news', () => {
 
   it('returns news from The Guardian', done => {
     app.get('/news')
+      .query({ pollDate, limit })
+      .expect(200)
+      .expect(res => {
+        expect(res.body).to.deep.equal(stubbedNews);
+        sinon.assert.calledWith(newsStub, { limit, until: new Date('2017-12-31') });
+      })
+      .end(done);
+  });
+
+  it('filters news by partyId', done => {
+    app.get('/news')
       .query({ pollDate, partyId, limit })
       .expect(200)
       .expect(res => {
         expect(res.body).to.deep.equal(stubbedNews);
-        sinon.assert.calledWith(newsStub, { limit, partyId, until: new Date('2017-12-31') });
+        sinon.assert.calledWith(newsStub, { limit, partyId, until: sinon.match.date });
       })
       .end(done);
   });
 
   it('validates "partyId"', done => {
     app.get('/news')
-      .query({ pollDate, limit })
+      .query({ pollDate, limit, partyId: 'this is too long' })
       .expect(400)
       .expect(res => {
-        expect(res.body.message).to.match(/"partyId" is required/);
+        expect(res.body.message).to.match(/"partyId" length must be less than or equal to 4 characters/);
       })
       .end(done);
   });
