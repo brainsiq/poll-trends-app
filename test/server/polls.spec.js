@@ -97,7 +97,7 @@ describe('GET /polls', () => {
       .query({ company, limit, until })
       .expect(200)
       .expect(res => {
-        sinon.assert.calledWith(pollsApiStub, { company, limit, endDate: until });
+        sinon.assert.calledWith(pollsApiStub, { company, limit, endDate: until, pollType: 'WESTVI' });
         expect(res.body).to.deep.equal([{
           id: 1,
           date: '2017-12-01',
