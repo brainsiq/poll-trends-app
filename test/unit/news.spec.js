@@ -10,7 +10,7 @@ const testGuardianNewsQuery = (expectedQuery, done, partyId) => {
 
   nock('http://content.guardianapis.com')
     .get('/search')
-    .query((actualQueryString) => console.log(querystring.stringify(actualQueryString), expectedQuery) || querystring.stringify(actualQueryString) === expectedQuery)
+    .query((actualQueryString) => querystring.stringify(actualQueryString) === expectedQuery)
     .reply(200, {
       response: {
         results: []
@@ -71,5 +71,10 @@ describe('news', () => {
   it('should request the green party tag when partyId is grn', done => {
     const expectedQuery = `show-fields=thumbnail&section=politics&tag=theguardian%2Fmainsection%2Ctone%2Fnews%2Cpolitics%2Fgreen-party&api-key=${testApiKey}&to-date=2015-01-01&from-date=2014-12-25&page-size=15`;
     testGuardianNewsQuery(expectedQuery, done, 'grn');
+  });
+
+  it('ignores case of partyId', done => {
+    const expectedQuery = `show-fields=thumbnail&section=politics&tag=theguardian%2Fmainsection%2Ctone%2Fnews%2Cpolitics%2Flabour&api-key=${testApiKey}&to-date=2015-01-01&from-date=2014-12-25&page-size=15`;
+    testGuardianNewsQuery(expectedQuery, done, 'LAB');
   });
 });
