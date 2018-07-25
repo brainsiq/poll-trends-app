@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const app = require('./testableApp');
 
 describe('GET /parties', () => {
-  const stubbedParties = [{ id: 1 }, { id: 2 }];
+  const stubbedParties = [{ code: 'CON' }, { code: 'LAB' }];
   let partiesApiStub = null;
 
   beforeEach(() => {
